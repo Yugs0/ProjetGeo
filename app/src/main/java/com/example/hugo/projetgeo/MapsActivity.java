@@ -21,6 +21,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import android.location.LocationListener;
+import android.widget.Toast;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -30,8 +32,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Location mLastKnownLocation = null;
     private LatLng mDefaultLocation;
-    private float DEFAULT_ZOOM = 17.0f;
+    private float DEFAULT_ZOOM = 17.0f; //zoom min : 2, zoom max : 21
     private String TAG = "PROJET GEO";
+    LocationListener locationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +50,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //set the default location to Ludus Brussels
         mDefaultLocation = new LatLng(50.8571393, 4.348130800000035);
+
+        //instanciate the location listener to be able to update our currentLocation
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                LatLng newPos = new LatLng(location.getLatitude(),location.getLongitude());
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(newPos));
+                Toast.makeText(getApplicationContext(),"LOCATION CHANGED",Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
     }
 
 
