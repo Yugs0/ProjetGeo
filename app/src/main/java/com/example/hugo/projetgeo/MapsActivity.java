@@ -23,10 +23,13 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import android.location.LocationListener;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    SupportMapFragment map;
     private GoogleMap mMap;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     boolean mLocationPermissionGranted = false;
@@ -37,11 +40,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String TAG = "PROJET GEO";
     LocationListener locationListener;
     LocationManager locationManager;
+    private boolean isMovingCameraWithFinger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -60,7 +65,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 LatLng newPos = new LatLng(location.getLatitude(),location.getLongitude());
                 //mMap.animateCamera(CameraUpdateFactory.newLatLng(newPos));
                 //Log.e(TAG, "LOCATION CHANGED");
-                centerOnDeviceLocation();
+                //centerOnDeviceLocation();
             }
 
             @Override
@@ -89,6 +94,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
 
+
+
     }
 
 
@@ -113,6 +120,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         enableMyLocation();
         centerOnDeviceLocation();
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
+               @Override
+               public void onMapClick(final LatLng clickCoords) {
+                   Log.e(TAG, "LE LISTENER MARCHE");
+               }
+           }
+        );
+
     }
 
     private void enableMyLocation() {
@@ -150,9 +166,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         if (task.isSuccessful()) {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = (Location) task.getResult();
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mLastKnownLocation.getLatitude(),
-                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            if(!isMovingCameraWithFinger) {
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(mLastKnownLocation.getLatitude(),
+                                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            }
                         } else {
                             Log.d(TAG,  "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
