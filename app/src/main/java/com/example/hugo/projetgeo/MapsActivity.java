@@ -3,6 +3,7 @@ package com.example.hugo.projetgeo;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -22,24 +23,30 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import android.location.LocationListener;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    SupportMapFragment map;
     private GoogleMap mMap;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    private Location mLastKnownLocation = null;
+    private Location mLastKnownLocation;
     private LatLng mDefaultLocation;
     private float DEFAULT_ZOOM = 17.0f; //zoom min : 2, zoom max : 21
     private String TAG = "PROJET GEO";
     LocationListener locationListener;
+    LocationManager locationManager;
+    private boolean isMovingCameraWithFinger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -56,8 +63,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onLocationChanged(Location location) {
                 LatLng newPos = new LatLng(location.getLatitude(),location.getLongitude());
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(newPos));
-                Toast.makeText(getApplicationContext(),"LOCATION CHANGED",Toast.LENGTH_LONG).show();
+                //mMap.animateCamera(CameraUpdateFactory.newLatLng(newPos));
+                //Log.e(TAG, "LOCATION CHANGED");
+                //centerOnDeviceLocation();
             }
 
             @Override
@@ -75,6 +83,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         };
+
+        locationManager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
+
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.e(TAG,"PERMISSION GRANTED");
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 100, locationListener);
+            }
+        }
+
+
+
     }
 
 
@@ -98,7 +119,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.addMarker(new MarkerOptions().position(kampala).title("Da wei"));
         //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         enableMyLocation();
-        getDeviceLocation();
+        centerOnDeviceLocation();
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
+               @Override
+               public void onMapClick(final LatLng clickCoords) {
+                   Log.e(TAG, "LE LISTENER MARCHE");
+               }
+           }
+        );
+
     }
 
     private void enableMyLocation() {
@@ -115,23 +145,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
         //LatLng devicePosition = new LatLng(mMap.getMyLocation().getLatitude(),mMap.getMyLocation().getLongitude());
 
-    private void getDeviceLocation() {
+    private void centerOnDeviceLocation() {
     /*
      * Get the best and most recent location of the device, which may be null in rare
      * cases when a location is not available.
      */
+        if (mLastKnownLocation == null){
+            Log.e(TAG,"last location unknown");
+        }
+
         try {
             if (mLocationPermissionGranted) {
+                if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+
+                }
                 Task locationResult = mFusedLocationProviderClient.getLastLocation();
                 locationResult.addOnCompleteListener(this, new OnCompleteListener() {
                     @Override
-                    public void onComplete(@NonNull Task task) {
+                    public void onComplete(@NonNull Task task){
                         if (task.isSuccessful()) {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = (Location) task.getResult();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mLastKnownLocation.getLatitude(),
-                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            if(!isMovingCameraWithFinger) {
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(mLastKnownLocation.getLatitude(),
+                                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            }
                         } else {
                             Log.d(TAG,  "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
@@ -146,6 +185,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG,"Permission Granted");
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 0f, locationListener);
+        }
+    }
 
 }
