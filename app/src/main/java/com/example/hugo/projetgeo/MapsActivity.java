@@ -145,6 +145,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
         //LatLng devicePosition = new LatLng(mMap.getMyLocation().getLatitude(),mMap.getMyLocation().getLongitude());
+    public void setMarkerOnSelf() {
+        mLastKnownLocation.getLatitude();
+        LatLng myself =  new LatLng(mLastKnownLocation.getLatitude(),mLastKnownLocation.getLongitude());
+        mMap.addMarker(new MarkerOptions().position(myself).title("Nouveau Marker"));
+    }
 
     private void centerOnDeviceLocation() {
     /*
