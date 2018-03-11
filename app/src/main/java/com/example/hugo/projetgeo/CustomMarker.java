@@ -38,6 +38,15 @@ public class CustomMarker {
         this.comments = comments;
     }
 
+    public CustomMarker (String name, float latitude, float longitude, String owner, String comments){
+        this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.rating = 0;
+        this.owner = owner;
+        this.comments = comments;
+    }
+
     public int getId() {
         return id;
     }

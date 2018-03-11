@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.hugo.projetgeo.AddLocation">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay" >
+    </android.support.design.widget.AppBarLayout>
+
+    <TextView
+        android:id="@+id/textTitle"
+        android:textSize="20sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Titre du marqueur"
+        app:layout_anchorGravity="top|left"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="6dp" />
+
+    <EditText
+        android:id="@+id/editTitle"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:inputType="textShortMessage"
+        android:hint="Titre"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_marginTop="25dp"
+        android:layout_marginStart="12dp"
+        android:lines="1"
+        android:maxLength="30"/>
+
+    <TextView
+        android:id="@+id/textDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Description"
+        android:textSize="20sp"
+        app:layout_anchorGravity="top|left"
+        android:layout_marginTop="100dp"
+        android:layout_marginStart="12dp"/>
+
+    <EditText
+        android:id="@+id/editDescription"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:enabled="true"
+        android:inputType="textMultiLine"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_marginTop="125dp"
+        android:layout_marginStart="12dp"
+        android:hint="Ajoutez une description"
+        android:minLines="1"
+        android:maxLines="15"
+        android:maxLength="500"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabValider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:src="@drawable/ic_send_black_48dp"
+        android:layout_margin="16dp" />
+</android.support.design.widget.CoordinatorLayout>

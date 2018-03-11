@@ -1,10 +1,14 @@
 package com.example.hugo.projetgeo;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -27,6 +31,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     SupportMapFragment map;
@@ -42,10 +48,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LocationManager locationManager;
     private boolean isMovingCameraWithFinger;
 
+    SQLiteDatabase db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        DbHelper dbHelper = new DbHelper(this);
+        db = dbHelper.getWritableDatabase();
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -76,7 +87,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onProviderEnabled(String provider) {
-
+                centerOnDeviceLocation();
             }
 
             @Override
@@ -92,10 +103,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     == PackageManager.PERMISSION_GRANTED) {
                 Log.e(TAG,"PERMISSION GRANTED");
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 100, locationListener);
+                centerOnDeviceLocation();
             }
         }
 
-
+        final Context context = this;
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                centerOnDeviceLocation();
+                Intent intent = new Intent(context,AddLocation.class);
+                intent.putExtra("lat", (mLastKnownLocation.getLatitude()));
+                intent.putExtra("lng", (mLastKnownLocation.getLongitude()));
+                context.startActivity(intent);
+            }
+        });
 
     }
 
@@ -130,6 +153,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
            }
         );
 
+
+
+        DbHelper dbHelper = new DbHelper(this);
+        db = dbHelper.getWritableDatabase();
+
+
+        mMap.clear();
+        ArrayList<CustomMarker> tabMarkers = dbHelper.getAllMarkers(db);
+        for (CustomMarker marker:tabMarkers) {
+            LatLng coordonnees = new LatLng(marker.getLatitude(),marker.getLongitude());
+            mMap.addMarker(new MarkerOptions()
+                    .position(coordonnees)
+                    .title(marker.getName())
+                    .snippet(marker.getComments())
+                    .visible(true)
+            );
+        }
+
+
     }
 
     private void enableMyLocation() {
@@ -151,15 +193,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Get the best and most recent location of the device, which may be null in rare
      * cases when a location is not available.
      */
-        if (mLastKnownLocation == null){
-            Log.e(TAG,"last location unknown");
-        }
+
 
         try {
             if (mLocationPermissionGranted) {
-                if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                //if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
 
-                }
+                //}
                 Task locationResult = mFusedLocationProviderClient.getLastLocation();
                 locationResult.addOnCompleteListener(this, new OnCompleteListener() {
                     @Override
@@ -171,6 +211,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                         new LatLng(mLastKnownLocation.getLatitude(),
                                                 mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                                Log.e(TAG,"Last known location found");
                             }
                         } else {
                             Log.d(TAG,  "Current location is null. Using defaults.");
@@ -184,6 +225,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch(SecurityException e)  {
             Log.e("Exception: %s", e.getMessage());
         }
+
+        if (mLastKnownLocation == null){
+            Log.e(TAG,"last location unknown");
+        }
     }
 
     @Override
@@ -194,6 +239,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e(TAG,"Permission Granted");
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 0f, locationListener);
         }
+
+        centerOnDeviceLocation();
+
+        DbHelper dbHelper = new DbHelper(this);
+        db = dbHelper.getWritableDatabase();
+
+        if(mMap != null){
+            mMap.clear();
+            ArrayList<CustomMarker> tabMarkers = dbHelper.getAllMarkers(db);
+            for (CustomMarker marker:tabMarkers) {
+                LatLng coordonnees = new LatLng(marker.getLatitude(),marker.getLongitude());
+                mMap.addMarker(new MarkerOptions()
+                        .position(coordonnees)
+                        .title(marker.getName())
+                        .snippet(marker.getComments())
+                        .visible(true)
+                );
+            }
+        }
+
+
     }
 
 }

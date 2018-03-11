@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
 import com.example.hugo.projetgeo.DbContract.*;
 import com.google.android.gms.maps.model.Marker;
 import com.example.hugo.projetgeo.CustomMarker;
@@ -32,10 +34,10 @@ public class DbHelper extends SQLiteOpenHelper {
         sb.append(" (");
         sb.append(MarkersEntries._ID);
         sb.append(" INTEGER PRIMARY KEY AUTOINCREMENT,");
-        sb.append(MarkersEntries.TABLE_NAME);
+        sb.append(MarkersEntries.MARKER_NAME);
         sb.append(" TEXT NOT NULL,");
         sb.append(MarkersEntries.MARKER_RATING);
-        sb.append(" TEXT NOT NULL,");
+        sb.append(" TEXT,");
         sb.append(MarkersEntries.MARKER_LATITUDE);
         sb.append(" REAL,");
         sb.append(MarkersEntries.MARKER_LONGITUDE);
@@ -45,6 +47,7 @@ public class DbHelper extends SQLiteOpenHelper {
         sb.append(MarkersEntries.MARKER_OWNER);
         sb.append(" TEXT NOT NULL);");
 
+        Log.e("DB : ",sb.toString());
         db.execSQL(sb.toString());
 
         CustomMarker tab[] = new CustomMarker[10];
@@ -88,7 +91,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String query = "SELECT * FROM" + MarkersEntries.TABLE_NAME + " ORDER BY " + MarkersEntries._ID + " ASC";
         return db.rawQuery(query,null);
     }
-     public void addMarker(SQLiteDatabase db, CustomMarker[] tab) {
+     public void addMarkers(SQLiteDatabase db, CustomMarker[] tab) {
 
         for(int i = 0 ; i < tab.length; i++) {
             ContentValues cv = new ContentValues();
@@ -102,6 +105,20 @@ public class DbHelper extends SQLiteOpenHelper {
             db.insert(MarkersEntries.TABLE_NAME, null, cv);
          }
      }
+
+    public void addMarker(SQLiteDatabase db, CustomMarker marker) {
+
+        ContentValues cv = new ContentValues();
+        cv.put(MarkersEntries.MARKER_NAME, marker.getName());
+        cv.put(MarkersEntries.MARKER_LATITUDE, marker.getLatitude());
+        cv.put(MarkersEntries.MARKER_LONGITUDE, marker.getLongitude());
+        cv.put(MarkersEntries.MARKER_RATING, marker.getRating());
+        cv.put(MarkersEntries.MARKER_COMMENTS, marker.getComments());
+        cv.put(MarkersEntries.MARKER_OWNER, marker.getOwner());
+
+        db.insert(MarkersEntries.TABLE_NAME, null, cv);
+
+    }
 
      public CustomMarker getMarkerById(int id , SQLiteDatabase db){
         String query = "SELECT * FROM " + MarkersEntries.TABLE_NAME + " WHERE " + MarkersEntries._ID + " = " + id;
